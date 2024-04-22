@@ -1,9 +1,10 @@
 from django.urls import path
 from userapp import views
-from userapp.views import create_order
+from userapp.views import *
+
 
 urlpatterns = [
-    path('user_home/',views.user_home,name="user_home"),
+    path('',views.user_home,name="user_home"),
     path('user_sign_in_up/',views.user_sign_in_up,name="user_sign_in_up"),
     path('user_signup_save/',views.user_signup_save,name="user_signup_save"),
     path('user_sign_in/',views.user_sign_in,name="user_sign_in"),
@@ -26,11 +27,16 @@ urlpatterns = [
     path('groc_pg/',views.groc_pg,name="groc_pg"),
     path('product_page/<cate>', views.product_page, name="product_page"),
     path('add_to_cart/', views.add_to_cart, name="add_to_cart"),
+    
+    #  path('buy_now/<int:product_id>/', views.buy_now, name='buy_now'),
+    
     path('cart/', views.cart_view, name='cart_view'),
     path('checkout/', views.checkout, name='checkout'),
     path('remove_from_cart/<int:cart_item_id>/', views.remove_from_cart, name='remove_from_cart'),
     path('process-payment/', views.process_payment, name='process_payment'),
+        path('process-payment-buy/<int:pk>/', views.process_payment_buy, name='buy_pay'),
     path('place/', views.place, name='place'),
+        path('confirm/<int:pk>/', views.place1, name='confirm'),
 
 
 #clinic
@@ -40,6 +46,7 @@ urlpatterns = [
     path('view_drbill/', views.view_drbill, name='view_drbill'),
     path('view_drpre/<int:b_id>/', views.view_drpre, name='view_drpre'),
 
+    path('buy/<int:pk>/', views.checkout1, name='buy'),
 
 
 

@@ -44,6 +44,7 @@ def product_save(request):
 
 def add_category(request):
     return render(request,'add_category.html')
+
 def category_save(request):
     if request.method == "POST":
         n = request.POST.get('catname')

@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+from django.conf.urls.static import static
 import userapp.urls
 import hosapp.urls
 import driverapp.urls
@@ -26,7 +27,7 @@ from Senior_citizen_care import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('userapp/', include(userapp.urls)),
+    path('', include(userapp.urls)),
     path('hosapp/', include(hosapp.urls)),
     path('driverapp/', include(driverapp.urls)),
     path('groceryapp/', include(groceryapp.urls)),
@@ -35,5 +36,6 @@ urlpatterns = [
 
 
 ]
+
 urlpatterns += staticfiles_urlpatterns()
 urlpatterns += static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

@@ -6,8 +6,8 @@ from hosapp.views import hos_home
 from driverapp.views import driver_home
 from groceryapp.views import grocery_home
 from driverapp.models import ProfileDB,TaxiBooking,Feedback
-from groceryapp.models import CATEGORY,PRODUCTS
-from userapp.models import CartItem,BillingDetails
+from groceryapp.models import *
+from userapp.models import CartItem,BillingDetails,BuyBilling
 from hosapp.models import Appointment, Doctor, Prescription
 import razorpay
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
@@ -326,6 +326,29 @@ def add_to_cart(request):
 #     return redirect("cart_view")
 
 
+# def buy_now(request, product_id, quantity=1):
+#     try:
+#         product = PRODUCTS.objects.get(id=product_id)
+
+#         # Create or update the CartItem for the selected product and quantity
+#         cart_item, created = CartItem.objects.get_or_create(product=product)
+
+#         if not created:
+#             cart_item.quantity += int(quantity)
+#         else:
+#             cart_item.quantity = int(quantity)
+#             cart_item.product_name = product.Productname
+
+#         cart_item.total_price = cart_item.price * cart_item.quantity
+#         cart_item.save()
+
+#         # Redirect to the checkout page after adding the item to the cart
+#         return redirect('checkout')
+#     except PRODUCTS.DoesNotExist:
+#         # Handle the case where the product ID is invalid or not found
+#         return redirect('grocery_pg')  # Redirect to the grocery page or any appropriate page
+
+
 def cart_view(request):
     cart_items = CartItem.objects.all()
     total_price = sum(item.total_price for item in cart_items)
@@ -341,6 +364,16 @@ def checkout(request):
     cart_items = CartItem.objects.all()
     total_price = sum(item.total_price for item in cart_items)
     return render(request,'grocery/checkpout.html',{"cart_items": cart_items, "total_price": total_price})
+
+def checkout1(request,**kwargs):
+    # Retrieve all Buynow instances from the database
+    id=kwargs.get('pk')
+    item = PRODUCTS.objects.get(id=id)
+    
+    # Calculate the total price of all Buynow items
+    total_price = item.Price
+    
+    return render(request, 'grocery/checkout.html', {"cart_items": item, "total_price": total_price})
 
 
 def process_payment(request):
@@ -383,6 +416,49 @@ def process_payment(request):
             print("CartItem does not exist.")
 
     return redirect('checkout')
+
+
+def process_payment_buy(request,**kwargs):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        state = request.POST.get('state')
+        address = request.POST.get('addresss')
+        town = request.POST.get('town')
+        zip_code = request.POST.get('zip')
+        phone = request.POST.get('phone')
+        email = request.POST.get('mail')
+
+        # Retrieve the CartItem ID from the session
+        buy = kwargs.get('pk')
+
+        # Log the value of cart_item_id
+        print("Cart Item ID:", buy)
+
+        try:
+            # Retrieve the CartItem instance
+            cart_item = PRODUCTS.objects.get(pk=buy)
+
+            # Save the billing details with the CartItem ID to the database
+            billing_details = BuyBilling(
+                name=name,
+                state=state,
+                address=address,
+                town=town,
+                zip_code=zip_code,
+                phone=phone,
+                email=email,
+                product=cart_item  # Save the CartItem instance
+            )
+            billing_details.save()
+
+            # Redirect to a success page or return a success message
+            return redirect('confirm',pk=buy)
+        except CartItem.DoesNotExist:
+            # Handle the case where the CartItem does not exist
+            print("CartItem does not exist.")
+
+    return redirect('buy')
+
 
 
 
@@ -432,6 +508,19 @@ def place(request):
     total_price = sum(item.total_price for item in cart_items)
     return render(request, 'grocery/place.html', {"cart_items": cart_items, "total_price": total_price})
 
+
+
+def place1(request,**kwargs):
+    if request.method == 'POST':
+        total_amount = request.POST.get('total_amount')  # Assuming total_amount is posted from the form
+        client = razorpay.Client(auth=('rzp_test_Yth6NFWjeeRvSw', 'eNEhfjXVCd9Wby7lZ48MaKbU'))
+        payment = client.order.create({'amount': int(total_amount) * 100, 'currency': "INR", 'payment_capture': '1'})
+
+        return render(request, 'payment_form.html', {'payment': payment})
+    id=kwargs.get('pk')
+    cart_items = PRODUCTS.objects.get(id=id)
+    total_price = cart_items.Price
+    return render(request, 'grocery/place1.html', {"item": cart_items, "total_price": total_price})
 
 
 
@@ -550,5 +639,4 @@ def view_drpre(request, b_id):
 #         return render(request, 'bills.html', {'booking': booking, 'total_amount': total_amount, 'payment': payment})
 #     except TaxiBooking.DoesNotExist:
 #         return JsonResponse({'error': 'TaxiBooking not found'}, status=404)
-
 
